@@ -1,1 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Treemap Style */
+.node circle {
+  stroke: steelblue;
+  stroke-width: 3px;
+  cursor: pointer;
+}
+
+.node text {
+  font: 14px 微軟正黑體,sans-serif;
+  cursor: pointer;
+}
+
+.node--internal text {
+  text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+/* End of Treemap Style */

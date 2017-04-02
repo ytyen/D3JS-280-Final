@@ -5,10 +5,12 @@ import { HttpModule } from '@angular/http';
 
 import { AppComponent } from './app.component';
 import { D3Service } from 'd3-ng2-service';
+import { TreemapComponent } from './treemap/treemap.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    TreemapComponent
   ],
   imports: [
     BrowserModule,

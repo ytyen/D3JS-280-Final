@@ -6,16 +6,25 @@ import { HttpModule } from '@angular/http';
 import { AppComponent } from './app.component';
 import { D3Service } from 'd3-ng2-service';
 import { TreemapComponent } from './treemap/treemap.component';
+import { LineChartComponent } from './line-chart/line-chart.component';
+import { BarChartComponent } from './bar-chart/bar-chart.component';
+import { PieChartComponent } from './pie-chart/pie-chart.component';
+
+import { NouisliderModule } from 'ng2-nouislider';
 
 @NgModule({
   declarations: [
     AppComponent,
-    TreemapComponent
+    TreemapComponent,
+    LineChartComponent,
+    BarChartComponent,
+    PieChartComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
-    HttpModule
+    HttpModule,
+    NouisliderModule
   ],
   providers: [D3Service],
   bootstrap: [AppComponent]

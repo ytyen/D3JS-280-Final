@@ -1,6 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import "~nouislider/distribute/nouislider.min.css";
+
 /* Treemap Style */
+
 .node circle {
   stroke: steelblue;
   stroke-width: 3px;
@@ -8,7 +11,7 @@
 }
 
 .node text {
-  font: 14px 微軟正黑體,sans-serif;
+  font: 14px 微軟正黑體, sans-serif;
   cursor: pointer;
 }
 
@@ -21,4 +24,12 @@
   stroke: #ccc;
   stroke-width: 2px;
 }
+
+
 /* End of Treemap Style */
+
+.axis {
+  color: #666666;
+  font: 14px 微軟正黑體,sans-serif;
+  font-weight: bolder;
+}

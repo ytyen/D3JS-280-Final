@@ -27,6 +27,8 @@
     "d3-selection-multi": "^1.0.1",
     "jquery": "^3.2.1",
     "lodash": "^4.17.4",
+    "ng2-nouislider": "^1.6.0",
+    "nouislider": "^9.2.0",
     "rxjs": "^5.1.0",
     "zone.js": "^0.8.4"
   },

@@ -1,4 +1,7 @@
-<app-treemap (select)="selectIndustry($event)"></app-treemap>
-<div #container>
+<div class="wrapper">
+  <app-treemap (select)="selectIndustry($event)"></app-treemap>
+  <app-line-chart #lineChart></app-line-chart>
+  <div #container>
 
+  </div>
 </div>

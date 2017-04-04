@@ -16,7 +16,7 @@ export class EarningAndProductivityVM {
   平均工時: number;
   平均工時_女: number;
   平均工時_男: number;
-  '時間(月)': string;
+  時間: Date;
   正常工時: number;
   正常工時_女: number;
   正常工時_男: number;

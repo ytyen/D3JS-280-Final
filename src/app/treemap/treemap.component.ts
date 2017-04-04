@@ -1,5 +1,6 @@
 import { D3, D3Service } from 'd3-ng2-service';
 import { Component, AfterViewInit, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import * as $ from 'jquery';
 
 @Component({
   selector: 'app-treemap',
@@ -21,7 +22,7 @@ export class TreemapComponent implements AfterViewInit {
     { name: '資料處理及資訊供應服務業', parent: '資訊及通訊傳播業' },
   ];
   circle: any;
-  selectItem: string[] = [];
+  selectItem: string[] = ['資訊及通訊傳播業'];
   margin = { top: 20, right: 90, bottom: 30, left: 150 };
   width = 550 - this.margin.left - this.margin.right;
   height = 350 - this.margin.top - this.margin.bottom;
@@ -49,52 +50,60 @@ export class TreemapComponent implements AfterViewInit {
     nodes = treemap(nodes);
 
     this.render(nodes);
+
   }
 
   render(nodes) {
-    let svg = this.d3.select(this.container.nativeElement).append("svg")
-      .attr("width", this.width + this.margin.left + this.margin.right)
-      .attr("height", this.height + this.margin.top + this.margin.bottom);
+    let svg = this.d3.select(this.container.nativeElement).append('svg')
+      .attr('width', this.width + this.margin.left + this.margin.right)
+      .attr('height', this.height + this.margin.top + this.margin.bottom);
 
-    let g = svg.append("g")
-      .attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+    let g = svg.append('g')
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`);
 
-    var link = g.selectAll(".link")
+    var link = g.selectAll('.link')
       .data(nodes.descendants().slice(1))
-      .enter().append("path")
-      .attr("class", "link")
-      .attr("d", function (d: any) {
-        return "M" + d.y + "," + d.x
-          + "C" + (d.y + d.parent.y) / 2 + "," + d.x
-          + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
-          + " " + d.parent.y + "," + d.parent.x;
+      .enter().append('path')
+      .attr('class', 'link')
+      .attr('d', function (d: any) {
+        return 'M' + d.y + ',' + d.x
+          + 'C' + (d.y + d.parent.y) / 2 + ',' + d.x
+          + ' ' + (d.y + d.parent.y) / 2 + ',' + d.parent.x
+          + ' ' + d.parent.y + ',' + d.parent.x;
       });
 
     // adds each node as a group
-    var node = g.selectAll(".node")
+    var node = g.selectAll('.node')
       .data(nodes.descendants())
-      .enter().append("g")
-      .attr("class", function (d: any) {
-        return "node" +
-          (d.children ? " node--internal" : " node--leaf");
+      .enter().append('g')
+      .attr('class', function (d: any) {
+        return 'node' +
+          (d.children ? ' node--internal' : ' node--leaf');
       })
-      .attr("transform", function (d: any) {
-        return "translate(" + d.y + "," + d.x + ")";
+      .attr('transform', function (d: any) {
+        return 'translate(' + d.y + ',' + d.x + ')';
       });
 
     // adds the circle to the node
-    this.circle = node.append("circle")
-      .attr("r", 10)
-      .attr("fill", "#fff");
+    this.circle = node.append('circle')
+      .attr('r', 10)
+      .attr('fill', '#fff');
 
     // adds the text to the node
-    node.append("text")
-      .attr("dy", ".35em")
-      .attr("x", function (d: any) { return d.children ? -13 : 13; })
-      .style("text-anchor", function (d: any) {
-        return d.children ? "end" : "start";
+    node.append('text')
+      .attr('dy', '.35em')
+      .attr('x', function (d: any) { return d.children ? -13 : 13; })
+      .style('text-anchor', function (d: any) {
+        return d.children ? 'end' : 'start';
       })
       .text(function (d: any) { return d.data.name; });
+
+    let colors = this.d3.schemeCategory10;
+    this.circle.attr('fill', (d, i) =>
+      this.selectItem.indexOf(this.data[i].name) > -1
+        ? colors[i]
+        : '#fff'
+    );
 
     node.on('click', (d, i, data) => {
       let text = this.d3.select(data[i]).text();
@@ -102,14 +111,14 @@ export class TreemapComponent implements AfterViewInit {
       index > -1
         ? this.selectItem.splice(index, 1)
         : this.selectItem.push(text);
+
       this.select.emit(this.selectItem);
 
-      let colors = this.d3.schemeCategory10;
-      this.circle.attr("fill", (d, i) =>
+      this.circle.attr('fill', (d, i) =>
         this.selectItem.indexOf(this.data[i].name) > -1
           ? colors[i]
           : '#fff'
-      )
+      );
     });
   }
 

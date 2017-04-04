@@ -1,0 +1,17 @@
+<div #container style="padding-left: 30px;padding-right: 30px;position: relative; display: inline-block">
+  <div id="year">{{yearsBar}}</div>
+  <div id="tooltip">
+    <p class="title"></p>
+    <p class="content_1"></p>
+    <p class="content_2"></p>
+    <p class="content_3"></p>
+  </div>
+</div>
+
+<div style="margin-top:30px">
+  <div class="slider-bar" style="display: inline-block;width: 800px;padding-left: 30px;padding-right: 30px">
+    <nouislider [step]="1" [min]="1991" [max]="2016" [tooltips]="true" [(ngModel)]="yearsBar" (ngModelChange)="yearChange($event)"></nouislider>
+  </div>
+  <button (click)="playAndPause()" style="display: inline-block;width: 60px;position: absolute;margin-top: 8px">{{playSub?'Pause':'Play'}}</button>
+  <!--<input [(ngModel)]="yearsBar" type="number" style="display: inline-block;width: 70px;position: absolute;margin-top: 7px">-->
+</div>

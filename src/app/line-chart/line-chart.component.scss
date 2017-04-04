@@ -1,3 +1,26 @@
+#container {
+  padding: 35px 35px 15px 35px;
+  margin-bottom: 10px;
+  position: relative;
+  display: inline-block;
+  border: 5px #ebebeb solid;
+}
+
+#switch {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  border: 1px #999999 solid;
+  border-radius: 5px;
+  padding: 8px 10px;
+  label {
+    margin: 0px 10px;
+  }
+  input {
+    margin-right: 5px;
+  }
+}
+
 #year {
   position: absolute;
   top: 10px;
@@ -9,8 +32,6 @@
 
 #tooltip {
   font-family: 微軟正黑體;
-  width: 180px;
-  height: auto;
   background: #ffffff;
   border: 1px #999999 solid;
   border-radius: 5px;
@@ -23,7 +44,12 @@
     font-weight: 900;
     font-size: 16px;
   }
-  p:not(.title){
+  .year {
+    text-align: center;
+    font-weight: 900;
+    font-size: 14px;
+  }
+  p:not(.title):not(.year) {
     text-align: right;
   }
 }

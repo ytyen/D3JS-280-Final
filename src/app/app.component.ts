@@ -65,6 +65,7 @@ export class AppComponent implements AfterViewInit {
 
   initLineChart() {
     let data = this.data.filter(x => x.行業 === '資訊及通訊傳播業');
+    this.lineChart.selectData = ['資訊及通訊傳播業'];
     this.lineChart.data = data.map(x => {
       return {
         時間: x.時間,
@@ -78,6 +79,7 @@ export class AppComponent implements AfterViewInit {
 
   selectIndustry(selectData: string[]) {
     let data = this.data.filter(x => selectData.indexOf(x.行業) > -1);
+    this.lineChart.selectData = selectData;
     this.lineChart.data = data.map(x => {
       return {
         時間: x.時間,

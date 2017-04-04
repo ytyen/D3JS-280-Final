@@ -3,6 +3,7 @@ import { D3, D3Service, Selection, BaseType } from 'd3-ng2-service';
 import { Component, AfterViewInit, Input, ViewChild, ElementRef } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-line-chart',
@@ -13,6 +14,7 @@ export class LineChartComponent implements AfterViewInit {
   @Input() colors;
   @Input() max;
   @Input() min;
+  @Input() selectData;
   @Input() _data = [];
 
 
@@ -21,31 +23,56 @@ export class LineChartComponent implements AfterViewInit {
   }
   set data(value: any[]) {
     this._data = value;
-    // console.log(this._data);
-    this.xScale = this.d3.scaleLinear()
-      .domain([1, 13])
-      .range([this.margin.left, this.w - this.margin.left - this.margin.right]);
+
     this.yScale = this.d3.scaleLinear()
       .domain([0, 100000])
       .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + this.padding]);
 
-    this.bind(this.yearsBar);
+    switch (this.dataSwitch) {
+      case 'month':
+        // 坐標軸切換
+        this.d3.select('.axis.monthAxis').attr('display', '');
+        this.d3.select('.axis.yearAxis').attr('display', 'none');
+
+        this.xScale = this.d3.scaleLinear()
+          .domain([1, 13])
+          .range([this.margin.left, this.w - this.margin.left - this.margin.right]);
+        this.bind(this.data, this.selectYear);
+        break;
+      case 'year':
+        // 坐標軸切換
+        this.d3.select('.axis.monthAxis').attr('display', 'none');
+        this.d3.select('.axis.yearAxis').attr('display', '');
+
+        this.xScale = this.d3.scaleLinear()
+          .domain([1991, 2016])
+          .range([this.margin.left, this.w - this.margin.left - this.margin.right - this.padding]);
+        this.bind(this.getYearsData(this.data));
+        break;
+      default:
+        break;
+    }
   }
-  yearsBar: number = 1991;
+  selectYear: number = 1991;
   d3: D3;
   @ViewChild('container') container: ElementRef;
-  margin = { top: 30, right: 30, bottom: 30, left: 30 };
-  padding = 40;
-  w = 800;
-  h = 400;
+  dataSwitch = 'month';
+  margin = { top: 35, right: 30, bottom: 35, left: 30 };
+  padding = 50;
+  w = 900;
+  h = 450;
   r = 6;
   svg: Selection<BaseType, {}, null, undefined>;
   xScale;
   yScale;
   lineSub: Subscription;
   playSub: Subscription;
+  years: number[] = [];
   constructor(private d3Service: D3Service) {
     this.d3 = d3Service.getD3();
+    for (let i = 0; i <= 2016 - 1991; i++) {
+      this.years.push(1991 + i);
+    }
   }
 
   ngAfterViewInit() {
@@ -57,6 +84,19 @@ export class LineChartComponent implements AfterViewInit {
       });
 
     this.callAxis();
+    this.callYearsAxis();
+    switch (this.dataSwitch) {
+      case 'month':
+        this.d3.select('.axis.monthAxis').attr('display', '');
+        this.d3.select('.axis.yearAxis').attr('display', 'none');
+        break;
+      case 'year':
+        this.d3.select('.axis.monthAxis').attr('display', 'none');
+        this.d3.select('.axis.yearAxis').attr('display', '');
+        break;
+      default:
+        break;
+    }
   }
 
   callAxis() {
@@ -68,7 +108,7 @@ export class LineChartComponent implements AfterViewInit {
       .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + this.padding]);
     // X軸
     let axisX = this.svg.append('g')
-      .attr('class', 'axis')
+      .attr('class', 'axis monthAxis')
       .attr('transform', `translate(0,${this.h - this.margin.top - this.margin.bottom - this.padding})`)
       .call(this.d3.axisBottom(axisXScale));
     // Y軸
@@ -80,13 +120,45 @@ export class LineChartComponent implements AfterViewInit {
       }));
   }
 
-  bind(year) {
-    let industryData = this.data.map(x => x.行業)
-      .filter((d, i, data) => data.indexOf(d) === i)
-      .map(industry => this.data.filter(x => x.時間.getFullYear() === year && x.行業 === industry));
+  callYearsAxis() {
+    let axisXScale = this.d3.scaleLinear()
+      .domain([1991, 2016])
+      .range([this.margin.left + this.padding - 10, this.w - this.margin.left - this.margin.right - this.padding - this.r + 20]);
+    // X軸
+    let axisX = this.svg.append('g')
+      .attr('class', 'axis yearAxis')
+      .attr('transform', `translate(0,${this.h - this.margin.top - this.margin.bottom - this.padding})`)
+      .call(this.d3.axisBottom(axisXScale).ticks(26).tickFormat(d => d.toString()))
+      .selectAll('text')
+      .style('text-anchor', 'end')
+      .attr('dx', '-.8em')
+      .attr('dy', '.15em')
+      .attr('transform', 'rotate(-65)');;
+  }
+
+  bind(models: any[], year = null) {
+    let industryData: any[], number: number;
+    switch (this.dataSwitch) {
+      case 'month':
+        industryData = models.map(x => x.行業)
+          .filter((d, i, data) => data.indexOf(d) === i)
+          .map(industry => models.filter(x => x.時間.getFullYear() === year && x.行業 === industry));
+        number = 13;
+        break;
+      case 'year':
+        industryData = models.map(x => x.行業)
+          .filter((d, i, data) => data.indexOf(d) === i)
+          .map(industry => models.filter(x => x.行業 === industry));
+        number = _.max(industryData.map(x => x.length)) + 1;
+        break;
+      default:
+        break;
+    }
+
     let source = Observable.from(industryData).map(
-      x => Observable.interval(60).take(13).map(n => x.slice(0, n))
+      x => Observable.interval(60).take(number).map(n => x.slice(0, n))
     ).mergeAll().bufferTime(60);
+
     if (this.lineSub) {
       this.lineSub.unsubscribe();
     }
@@ -110,9 +182,30 @@ export class LineChartComponent implements AfterViewInit {
   }
 
   render(industryData: any[]) {
+    switch (this.dataSwitch) {
+      case 'month':
+        this.svg.selectAll('circle').attrs({
+          cx: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1)
+        });
+        this.svg.selectAll('line.data-line').attrs({
+          x1: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1),
+          x2: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1 + 1)
+        });
+        break;
+      case 'year':
+        this.svg.selectAll('circle').attrs({
+          cx: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear())
+        });
+        this.svg.selectAll('line.data-line').attrs({
+          x1: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear()),
+          x2: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear() + 1)
+        });
+        break;
+      default:
+        break;
+    }
     this.svg.selectAll('circle')
       .attrs({
-        cx: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1),
         cy: (d: any) => this.yScale(d.經常性薪資),
         r: this.r,
         fill: (d: any) => this.colors.find(x => x.name === d.行業).color,
@@ -126,9 +219,7 @@ export class LineChartComponent implements AfterViewInit {
 
     this.svg.selectAll('line.data-line')
       .attrs({
-        x1: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1),
         y1: (d: any) => this.yScale(d.經常性薪資),
-        x2: (d: any) => this.margin.left + this.xScale(d.時間.getMonth() + 1 + 1),
         y2: (d: any) => {
           let data = industryData.filter(x => x.行業 === d.行業).map(x => x.經常性薪資);
           let index = data.indexOf(d.經常性薪資);
@@ -158,6 +249,7 @@ export class LineChartComponent implements AfterViewInit {
         // console.log(d.經常性薪資);
         let tooltip = this.d3.select('#tooltip');
         tooltip.select('.title').text(d.行業);
+        tooltip.select('.year').text(d.時間.getFullYear());
         tooltip.select('.content_1').text(`經常性薪資：${Number(d.經常性薪資).toLocaleString()} 元`);
         tooltip.select('.content_2').text(`男：${Number(d.經常性薪資_男).toLocaleString()} 元`);
         tooltip.select('.content_3').text(`女：${Number(d.經常性薪資_女).toLocaleString()} 元`);
@@ -180,8 +272,8 @@ export class LineChartComponent implements AfterViewInit {
       this.playSub.unsubscribe();
       this.playSub = undefined;
     } else {
-      this.playSub = Observable.interval(1000).takeWhile(() => this.yearsBar < 2016).subscribe(
-        () => this.yearsBar++,
+      this.playSub = Observable.interval(1000).takeWhile(() => this.selectYear < 2016).subscribe(
+        () => this.selectYear++,
         null,
         () => this.playSub = undefined
       );
@@ -189,7 +281,61 @@ export class LineChartComponent implements AfterViewInit {
   }
 
   yearChange(year) {
-    this.bind(year);
+    this.bind(this.data, year);
+  }
+
+  getYearsData(data: any[]): any[] {
+    let yearGroup = _.groupBy(data, (x) => x.時間.getFullYear());
+    let yearData = _.map(yearGroup, (d) => _.groupBy(d, (x) => x.行業));
+    let yearDataResult = _.flatten(this.selectData.map(s => yearData.map(d => d[s]).map(this.calculateAvg))).filter((x: any) => x.行業);
+    return yearDataResult;
+  }
+
+  calculateAvg(data: any[]) {
+    if (data && data.length > 0) {
+      return {
+        時間: data[0].時間,
+        行業: data[0].行業,
+        經常性薪資: _.round(data.map(x => x.經常性薪資).reduce(_.add) / data.length),
+        經常性薪資_女: _.round(data.map(x => x.經常性薪資_女).reduce(_.add) / data.length),
+        經常性薪資_男: _.round(data.map(x => x.經常性薪資_男).reduce(_.add) / data.length),
+      };
+    } else {
+      return {
+        時間: new Date(),
+        行業: '',
+        經常性薪資: 0,
+        經常性薪資_女: 0,
+        經常性薪資_男: 0,
+      };
+    }
+  }
+
+  switch() {
+    switch (this.dataSwitch) {
+      case 'month':
+        // 坐標軸切換
+        this.d3.select('.axis.monthAxis').attr('display', '');
+        this.d3.select('.axis.yearAxis').attr('display', 'none');
+
+        this.xScale = this.d3.scaleLinear()
+          .domain([1, 13])
+          .range([this.margin.left, this.w - this.margin.left - this.margin.right]);
+        this.bind(this.data, this.selectYear);
+        break;
+      case 'year':
+        // 坐標軸切換
+        this.d3.select('.axis.monthAxis').attr('display', 'none');
+        this.d3.select('.axis.yearAxis').attr('display', '');
+
+        this.xScale = this.d3.scaleLinear()
+          .domain([1991, 2016])
+          .range([this.margin.left, this.w - this.margin.left - this.margin.right - this.padding]);
+        this.bind(this.getYearsData(this.data));
+        break;
+      default:
+        break;
+    }
   }
 
 }

@@ -26,7 +26,7 @@ export class LineChartComponent implements AfterViewInit {
 
     this.yScale = this.d3.scaleLinear()
       .domain([0, 100000])
-      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + this.padding]);
+      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + 20]);
 
     switch (this.dataSwitch) {
       case 'month':
@@ -102,10 +102,10 @@ export class LineChartComponent implements AfterViewInit {
   callAxis() {
     let axisXScale = this.d3.scaleLinear()
       .domain([1, 12])
-      .range([this.margin.left + this.padding - 10, this.w - this.margin.left - this.margin.right - this.padding - this.r + 20]);
+      .range([this.margin.left + this.padding - 20, this.w - this.margin.left - this.margin.right - this.padding - this.r + 18]);
     let axisYScale = this.d3.scaleLinear()
       .domain([0, 100000])
-      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + this.padding]);
+      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + 18]);
     // X軸
     let axisX = this.svg.append('g')
       .attr('class', 'axis monthAxis')
@@ -123,7 +123,7 @@ export class LineChartComponent implements AfterViewInit {
   callYearsAxis() {
     let axisXScale = this.d3.scaleLinear()
       .domain([1991, 2016])
-      .range([this.margin.left + this.padding - 10, this.w - this.margin.left - this.margin.right - this.padding - this.r + 20]);
+      .range([this.margin.left + this.padding - 20, this.w - this.margin.left - this.margin.right - this.r - 15]);
     // X軸
     let axisX = this.svg.append('g')
       .attr('class', 'axis yearAxis')
@@ -241,10 +241,43 @@ export class LineChartComponent implements AfterViewInit {
   }
 
   bindEvents() {
+    let lineY, lineX;
     this.svg.selectAll('circle')
       .on('mouseover', (d: any, i, data) => {
-        this.d3.select(this.d3.event.target).raise();
         let point = this.d3.mouse(this.d3.event.target);
+
+        // 增加輔助線
+        // 動畫跑完才加
+        if (this.lineSub && this.lineSub.closed) {
+          // Y
+          lineY = this.svg.append('line')
+            .classed('help', true)
+            .attrs({
+              x1: this.margin.left + 12,
+              y1: this.d3.select(this.d3.event.target).attr('cy'),
+              x2: this.d3.select(this.d3.event.target).attr('cx'),
+              y2: this.d3.select(this.d3.event.target).attr('cy'),
+              stroke: '#333333',
+              'stroke-width': 2,
+              'stroke-dasharray': '5, 5',
+              opacity: 0.8
+            });
+          // X
+          lineX = this.svg.append('line')
+            .classed('help', true)
+            .attrs({
+              x1: this.d3.select(this.d3.event.target).attr('cx'),
+              y1: this.d3.select(this.d3.event.target).attr('cy'),
+              x2: this.d3.select(this.d3.event.target).attr('cx'),
+              y2: this.h - this.margin.top - this.margin.bottom - this.padding,
+              stroke: '#333333',
+              'stroke-width': 2,
+              'stroke-dasharray': '5, 5',
+              opacity: 0.8
+            });
+        }
+
+        this.d3.select(this.d3.event.target).raise();
 
         // console.log(d.經常性薪資);
         let tooltip = this.d3.select('#tooltip');
@@ -259,11 +292,13 @@ export class LineChartComponent implements AfterViewInit {
         let point = this.d3.mouse(this.d3.event.target);
         this.d3.select('#tooltip')
           .styles({
-            transform: `translate(${point[0] + 1}px,${point[1] + 1}px)`
+            transform: `translate(${point[0] + 5}px,${point[1] + 5}px)`
           });
       })
       .on('mouseout', (d: any, i, data) => {
         this.d3.select('#tooltip').style('visibility', 'hidden');
+        lineY.remove();
+        lineX.remove();
       });
   }
 

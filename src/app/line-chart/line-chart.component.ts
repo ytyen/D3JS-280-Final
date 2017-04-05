@@ -133,7 +133,7 @@ export class LineChartComponent implements AfterViewInit {
       .style('text-anchor', 'end')
       .attr('dx', '-.8em')
       .attr('dy', '.15em')
-      .attr('transform', 'rotate(-65)');;
+      .attr('transform', 'rotate(-65)');
   }
 
   bind(models: any[], year = null) {
@@ -280,7 +280,7 @@ export class LineChartComponent implements AfterViewInit {
         this.d3.select(this.d3.event.target).raise();
 
         // console.log(d.經常性薪資);
-        let tooltip = this.d3.select('#tooltip');
+        let tooltip = this.d3.select(this.container.nativeElement).select('#tooltip');
         tooltip.select('.title').text(d.行業);
         tooltip.select('.year').text(d.時間.getFullYear());
         tooltip.select('.content_1').text(`經常性薪資：${Number(d.經常性薪資).toLocaleString()} 元`);
@@ -290,13 +290,13 @@ export class LineChartComponent implements AfterViewInit {
       })
       .on('mousemove', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
-        this.d3.select('#tooltip')
+        this.d3.select(this.container.nativeElement).select('#tooltip')
           .styles({
             transform: `translate(${point[0] + 5}px,${point[1] + 5}px)`
           });
       })
       .on('mouseout', (d: any, i, data) => {
-        this.d3.select('#tooltip').style('visibility', 'hidden');
+        this.d3.select(this.container.nativeElement).select('#tooltip').style('visibility', 'hidden');
         lineY.remove();
         lineX.remove();
       });

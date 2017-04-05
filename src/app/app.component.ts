@@ -1,3 +1,4 @@
+import { BarChartComponent } from './bar-chart/bar-chart.component';
 import { Observable } from 'rxjs/Observable';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { EarningAndProductivityVM } from './vm/EarningAndProductivityVM';
@@ -14,8 +15,8 @@ import 'rxjs';
 export class AppComponent implements AfterViewInit {
   @ViewChild('container') container: ElementRef;
   @ViewChild('lineChart') lineChart: LineChartComponent;
+  @ViewChild('barChart') barChart: BarChartComponent;
   d3: D3;
-  svg: any;
   data: EarningAndProductivityVM[];
   colors: Array<{ name: string, color: string }>;
 
@@ -40,11 +41,16 @@ export class AppComponent implements AfterViewInit {
           .filter((d, i, data) => data.indexOf(d) === i)
           .map((d, i) => { return { name: d, color: colors[i] }; });
 
-        // Init Charts
+        // Init Line Chart
         this.lineChart.colors = this.colors;
         this.lineChart.max = this.d3.max(this.data, (d) => d.經常性薪資);
         this.lineChart.min = this.d3.min(this.data, (d) => d.經常性薪資);
         this.initLineChart();
+        // Init Bar Chart
+        this.barChart.colors = this.colors;
+        this.barChart.max = this.d3.max(this.data, (d) => d.平均工時);
+        this.barChart.min = this.d3.min(this.data, (d) => d.平均工時);
+        this.initBarChart();
       },
       (err) => {
         alert('資料載入失敗，請重新整理。');
@@ -53,14 +59,7 @@ export class AppComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.svg = this.d3.select(this.container.nativeElement).append('svg')
-      .attrs({
-        width: 800,
-        height: 600
-      })
-      .styles({
-        'background-color': 'red'
-      });
+
   }
 
   initLineChart() {
@@ -77,8 +76,23 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
+  initBarChart() {
+    let data = this.data.filter(x => x.行業 === '資訊及通訊傳播業');
+    this.barChart.selectData = ['資訊及通訊傳播業'];
+    this.barChart.data = data.map(x => {
+      return {
+        時間: x.時間,
+        行業: x.行業,
+        平均工時: x.平均工時,
+        平均工時_男: x.平均工時_男,
+        平均工時_女: x.平均工時_女
+      };
+    });
+  }
+
   selectIndustry(selectData: string[]) {
     let data = this.data.filter(x => selectData.indexOf(x.行業) > -1);
+    // Line Chart
     this.lineChart.selectData = selectData;
     this.lineChart.data = data.map(x => {
       return {

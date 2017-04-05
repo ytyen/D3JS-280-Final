@@ -2,8 +2,11 @@
 
 @import "~nouislider/distribute/nouislider.min.css";
 
-/* Treemap Style */
+* {
+  font-family: 微軟正黑體
+}
 
+/* Treemap Style */
 .node circle {
   stroke: steelblue;
   stroke-width: 3px;
@@ -24,8 +27,6 @@
   stroke: #ccc;
   stroke-width: 2px;
 }
-
-
 /* End of Treemap Style */
 
 .axis {

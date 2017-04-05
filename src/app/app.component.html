@@ -1,6 +1,10 @@
 <div class="wrapper">
+  <h1>經常性薪資</h1>
   <app-line-chart #lineChart [rawData]="data"></app-line-chart>
   <hr>
+  <h1>平均工時</h1>
   <app-bar-chart  #barChart [rawData]="data"></app-bar-chart>
-  <div #container></div>
+  <hr>
+  <h1>受僱員工人數</h1>
+  <app-pie-chart #pieChart [rawData]="data"></app-pie-chart>
 </div>

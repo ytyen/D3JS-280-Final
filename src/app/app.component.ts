@@ -1,8 +1,9 @@
+import { PieChartComponent } from './pie-chart/pie-chart.component';
 import { BarChartComponent } from './bar-chart/bar-chart.component';
 import { Observable } from 'rxjs/Observable';
 import { LineChartComponent } from './line-chart/line-chart.component';
 import { EarningAndProductivityVM } from './vm/EarningAndProductivityVM';
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { D3Service, D3, Selection } from 'd3-ng2-service';
 import { Http } from '@angular/http';
 import 'rxjs';
@@ -12,10 +13,10 @@ import 'rxjs';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit {
-  @ViewChild('container') container: ElementRef;
+export class AppComponent implements OnInit {
   @ViewChild('lineChart') lineChart: LineChartComponent;
   @ViewChild('barChart') barChart: BarChartComponent;
+  @ViewChild('pieChart') pieChart: PieChartComponent;
   d3: D3;
   data: EarningAndProductivityVM[];
   colors: Array<{ name: string, color: string }>;
@@ -51,15 +52,16 @@ export class AppComponent implements AfterViewInit {
         this.barChart.max = this.d3.max(this.data, (d) => d.平均工時);
         this.barChart.min = this.d3.min(this.data, (d) => d.平均工時);
         this.initBarChart();
+        // Init Pie Chart
+        this.pieChart.colors = this.colors;
+        this.pieChart.max = this.d3.max(this.data, (d) => d.受僱員工人數);
+        this.pieChart.min = this.d3.min(this.data, (d) => d.受僱員工人數);
+        this.initPieChart();
       },
       (err) => {
         alert('資料載入失敗，請重新整理。');
       }
     );
-  }
-
-  ngAfterViewInit() {
-
   }
 
   initLineChart() {
@@ -86,6 +88,20 @@ export class AppComponent implements AfterViewInit {
         平均工時: x.平均工時,
         平均工時_男: x.平均工時_男,
         平均工時_女: x.平均工時_女
+      };
+    });
+  }
+
+  initPieChart() {
+    let data = this.data.filter(x => x.行業 === '資訊及通訊傳播業');
+    this.pieChart.selectData = ['資訊及通訊傳播業'];
+    this.pieChart.data = data.map(x => {
+      return {
+        時間: x.時間,
+        行業: x.行業,
+        受僱員工人數: x.受僱員工人數,
+        受僱員工人數_男: x.受僱員工人數_男,
+        受僱員工人數_女: x.受僱員工人數_女
       };
     });
   }

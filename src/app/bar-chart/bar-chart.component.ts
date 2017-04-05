@@ -11,6 +11,7 @@ import * as _ from 'lodash';
   styleUrls: ['./bar-chart.component.scss']
 })
 export class BarChartComponent implements AfterViewInit {
+  @Input() rawData;
   @Input() colors;
   @Input() max;
   @Input() min;
@@ -26,7 +27,7 @@ export class BarChartComponent implements AfterViewInit {
 
     this.yScale = this.d3.scaleLinear()
       .domain([0, 300])
-      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + 20]);
+      .range([this.margin.top - this.padding, this.h - this.margin.top - this.margin.bottom - this.padding]);
     this.xScale = this.d3.scaleLinear()
       .domain([1991, 2016])
       .range([this.margin.left, this.w - this.margin.left - this.margin.right - this.padding]);
@@ -38,7 +39,7 @@ export class BarChartComponent implements AfterViewInit {
   padding = 50;
   w = 900;
   h = 450;
-  barWidth = 15;
+  barWidth = 18;
   svg: Selection<BaseType, {}, null, undefined>;
   xScale;
   yScale;
@@ -63,13 +64,27 @@ export class BarChartComponent implements AfterViewInit {
     this.callAxis();
   }
 
+  selectIndustry(selectData: string[]) {
+    let data = this.rawData.filter(x => selectData.indexOf(x.行業) > -1);
+    this.selectData = selectData;
+    this.data = data.map(x => {
+      return {
+        時間: x.時間,
+        行業: x.行業,
+        平均工時: x.平均工時,
+        平均工時_男: x.平均工時_男,
+        平均工時_女: x.平均工時_女
+      };
+    });
+  }
+
   callAxis() {
     let axisXScale = this.d3.scaleLinear()
       .domain([1991, 2016])
-      .range([this.margin.left + this.padding - 20, this.w - this.margin.left - this.margin.right - this.barWidth - 15]);
+      .range([this.margin.left + this.padding - 12, this.w - this.margin.left - this.margin.right - 12]);
     let axisYScale = this.d3.scaleLinear()
       .domain([0, 300])
-      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top + 18]);
+      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top - 26]);
 
     // X軸
     let axisX = this.svg.append('g')
@@ -99,8 +114,8 @@ export class BarChartComponent implements AfterViewInit {
     number = _.max(industryData.map(x => x.length)) + 1;
 
     let source = Observable.from(industryData).map(
-      x => Observable.interval(60).take(number).map(n => x.slice(0, n))
-    ).mergeAll().bufferTime(60);
+      x => Observable.interval(30).take(number).map(n => x.slice(0, n))
+    ).mergeAll().bufferTime(30);
 
     if (this.lineSub) {
       this.lineSub.unsubscribe();
@@ -124,7 +139,7 @@ export class BarChartComponent implements AfterViewInit {
     this.svg.selectAll('rect')
       .attrs({
         x: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear()),
-        y: (d: any) => this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時),
+        y: (d: any) => this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
         width: this.barWidth,
         height: (d: any) => this.yScale(d.平均工時),
         fill: (d: any) => this.colors.find(x => x.name === d.行業).color,
@@ -133,7 +148,7 @@ export class BarChartComponent implements AfterViewInit {
       })
       .style('display', 'none')
       .transition()
-      .duration(60)
+      .duration(30)
       .style('display', '');
   }
 
@@ -151,9 +166,9 @@ export class BarChartComponent implements AfterViewInit {
             .classed('help', true)
             .attrs({
               x1: this.margin.left + 12,
-              y1: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時),
-              x2: this.d3.select(this.d3.event.target).attr('x'),
-              y2: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時),
+              y1: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
+              x2: this.w - this.margin.right,
+              y2: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
               stroke: '#333333',
               'stroke-width': 2,
               'stroke-dasharray': '5, 5',

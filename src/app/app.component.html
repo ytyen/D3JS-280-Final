@@ -1,6 +1,6 @@
 <div class="wrapper">
-  <app-treemap (select)="selectIndustry($event)"></app-treemap>
-  <app-line-chart #lineChart></app-line-chart>
-  <app-bar-chart  #barChart></app-bar-chart>
+  <app-line-chart #lineChart [rawData]="data"></app-line-chart>
+  <hr>
+  <app-bar-chart  #barChart [rawData]="data"></app-bar-chart>
   <div #container></div>
 </div>

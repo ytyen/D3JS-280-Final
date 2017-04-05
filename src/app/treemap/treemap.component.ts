@@ -1,5 +1,5 @@
 import { D3, D3Service } from 'd3-ng2-service';
-import { Component, AfterViewInit, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { Component, AfterViewInit, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 import * as $ from 'jquery';
 
 @Component({
@@ -9,6 +9,7 @@ import * as $ from 'jquery';
 })
 export class TreemapComponent implements AfterViewInit {
   @ViewChild('container') container: ElementRef;
+  @Input() single = false;
   @Output() select = new EventEmitter();
   d3: D3;
   data = [
@@ -105,21 +106,41 @@ export class TreemapComponent implements AfterViewInit {
         : '#fff'
     );
 
-    node.on('click', (d, i, data) => {
-      let text = this.d3.select(data[i]).text();
-      let index = this.selectItem.indexOf(text);
-      index > -1
-        ? this.selectItem.splice(index, 1)
-        : this.selectItem.push(text);
+    // bind event
+    if (this.single) {
+      node.on('click', (d, i, data) => {
+        let text = this.d3.select(data[i]).text();
+        if (this.selectItem.indexOf(text) > -1) {
+          return;
+        }
+        this.selectItem = [text];
 
-      this.select.emit(this.selectItem);
+        this.select.emit(this.selectItem);
 
-      this.circle.attr('fill', (d, i) =>
-        this.selectItem.indexOf(this.data[i].name) > -1
-          ? colors[i]
-          : '#fff'
-      );
-    });
+        this.circle.attr('fill', (d, i) =>
+          this.selectItem.indexOf(this.data[i].name) > -1
+            ? colors[i]
+            : '#fff'
+        );
+      });
+    } else {
+      node.on('click', (d, i, data) => {
+        let text = this.d3.select(data[i]).text();
+        let index = this.selectItem.indexOf(text);
+        index > -1
+          ? this.selectItem.splice(index, 1)
+          : this.selectItem.push(text);
+
+        this.select.emit(this.selectItem);
+
+        this.circle.attr('fill', (d, i) =>
+          this.selectItem.indexOf(this.data[i].name) > -1
+            ? colors[i]
+            : '#fff'
+        );
+      });
+    }
+
   }
 
 }

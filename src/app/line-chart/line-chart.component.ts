@@ -11,13 +11,12 @@ import * as _ from 'lodash';
   styleUrls: ['./line-chart.component.scss']
 })
 export class LineChartComponent implements AfterViewInit {
+  @Input() rawData;
   @Input() colors;
   @Input() max;
   @Input() min;
   @Input() selectData;
   @Input() _data = [];
-
-
   get data(): any[] {
     return this._data;
   }
@@ -73,6 +72,20 @@ export class LineChartComponent implements AfterViewInit {
     for (let i = 0; i <= 2016 - 1991; i++) {
       this.years.push(1991 + i);
     }
+  }
+
+  selectIndustry(selectData: string[]) {
+    let data = this.rawData.filter(x => selectData.indexOf(x.行業) > -1);
+    this.selectData = selectData;
+    this.data = data.map(x => {
+      return {
+        時間: x.時間,
+        行業: x.行業,
+        經常性薪資: x.經常性薪資,
+        經常性薪資_男: x.經常性薪資_男,
+        經常性薪資_女: x.經常性薪資_女
+      };
+    });
   }
 
   ngAfterViewInit() {
@@ -156,8 +169,8 @@ export class LineChartComponent implements AfterViewInit {
     }
 
     let source = Observable.from(industryData).map(
-      x => Observable.interval(60).take(number).map(n => x.slice(0, n))
-    ).mergeAll().bufferTime(60);
+      x => Observable.interval(30).take(number).map(n => x.slice(0, n))
+    ).mergeAll().bufferTime(30);
 
     if (this.lineSub) {
       this.lineSub.unsubscribe();
@@ -234,7 +247,7 @@ export class LineChartComponent implements AfterViewInit {
       })
       .style('display', 'none')
       .transition()
-      .duration(60)
+      .duration(30)
       .style('display', '');
 
     this.svg.selectAll('circle').raise();

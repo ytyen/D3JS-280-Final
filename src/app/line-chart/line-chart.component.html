@@ -1,7 +1,8 @@
+<app-treemap (select)="selectIndustry($event)"></app-treemap>
 <div #container id="container">
   <div id="switch">
-    <label><input [(ngModel)]="dataSwitch" (ngModelChange)="switch($event)" type="radio" value="month">月</label>
-    <label><input [(ngModel)]="dataSwitch" (ngModelChange)="switch($event)" type="radio" value="year">年</label>
+    <label><input [(ngModel)]="dataSwitch" (ngModelChange)="switch()" type="radio" value="month">月</label>
+    <label><input [(ngModel)]="dataSwitch" (ngModelChange)="switch()" type="radio" value="year">年</label>
   </div>
   <div *ngIf="dataSwitch === 'month'" id="year">{{selectYear}}</div>
   <div id="tooltip">

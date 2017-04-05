@@ -90,19 +90,4 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
-  selectIndustry(selectData: string[]) {
-    let data = this.data.filter(x => selectData.indexOf(x.行業) > -1);
-    // Line Chart
-    this.lineChart.selectData = selectData;
-    this.lineChart.data = data.map(x => {
-      return {
-        時間: x.時間,
-        行業: x.行業,
-        經常性薪資: x.經常性薪資,
-        經常性薪資_男: x.經常性薪資_男,
-        經常性薪資_女: x.經常性薪資_女
-      };
-    });
-  }
-
 }

@@ -3,7 +3,9 @@
   <app-line-chart #lineChart [rawData]="data"></app-line-chart>
   <hr>
   <h1>平均工時</h1>
-  <app-bar-chart  #barChart [rawData]="data"></app-bar-chart>
+  <button id="bar-line-toggle" (click)="toggleBarOrLine = !toggleBarOrLine">{{toggleBarOrLine ? '切換為折線圖' : '切換為長條圖'}}</button>
+  <app-bar-chart [style.display]="toggleBarOrLine ? '' : 'none'" #barChart [rawData]="data"></app-bar-chart>
+  <app-line-chart-avg-hours [style.display]="toggleBarOrLine ? 'none' : ''" #lineChartAvgHours [rawData]="data"></app-line-chart-avg-hours>
   <hr>
   <h1>受僱員工人數</h1>
   <app-pie-chart #pieChart [rawData]="data"></app-pie-chart>

@@ -310,8 +310,12 @@ export class LineChartComponent implements AfterViewInit {
       })
       .on('mouseout', (d: any, i, data) => {
         this.d3.select(this.container.nativeElement).select('#tooltip').style('visibility', 'hidden');
-        lineY.remove();
-        lineX.remove();
+        if (lineY) {
+          lineY.remove();
+        }
+        if (lineX) {
+          lineX.remove();
+        }
       });
   }
 

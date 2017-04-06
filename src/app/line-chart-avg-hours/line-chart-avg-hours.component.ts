@@ -6,19 +6,17 @@ import { Subscription } from 'rxjs/Subscription';
 import * as _ from 'lodash';
 
 @Component({
-  selector: 'app-bar-chart',
-  templateUrl: './bar-chart.component.html',
-  styleUrls: ['./bar-chart.component.scss']
+  selector: 'app-line-chart-avg-hours',
+  templateUrl: './line-chart-avg-hours.component.html',
+  styleUrls: ['./line-chart-avg-hours.component.scss']
 })
-export class BarChartComponent implements AfterViewInit {
+export class LineChartAvgHoursComponent implements AfterViewInit {
   @Input() rawData;
   @Input() colors;
   @Input() max;
   @Input() min;
   @Input() selectData;
   @Input() _data = [];
-
-
   get data(): any[] {
     return this._data;
   }
@@ -27,8 +25,7 @@ export class BarChartComponent implements AfterViewInit {
 
     this.yScale = this.d3.scaleLinear()
       .domain([0, 300])
-      .range([this.margin.top - this.padding, this.h - this.margin.top - this.margin.bottom - this.padding - 1]);
-
+      .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top - 25]);
     this.xScale = this.d3.scaleLinear()
       .domain([1991, 2016])
       .range([this.margin.left, this.w - this.margin.left - this.margin.right - this.padding]);
@@ -36,33 +33,19 @@ export class BarChartComponent implements AfterViewInit {
   }
   d3: D3;
   @ViewChild('container') container: ElementRef;
+  dataSwitch = 'month';
   margin = { top: 35, right: 30, bottom: 35, left: 30 };
   padding = 50;
   w = 900;
   h = 450;
-  barWidth = 18;
+  r = 6;
   svg: Selection<BaseType, {}, null, undefined>;
   xScale;
   yScale;
   lineSub: Subscription;
   playSub: Subscription;
-  years: number[] = [];
   constructor(private d3Service: D3Service) {
     this.d3 = d3Service.getD3();
-    for (let i = 0; i <= 2016 - 1991; i++) {
-      this.years.push(1991 + i);
-    }
-  }
-
-  ngAfterViewInit() {
-    this.svg = this.d3.select(this.container.nativeElement)
-      .append('svg')
-      .attrs({
-        width: this.w - this.margin.left - this.margin.right,
-        height: this.h - this.margin.top - this.margin.bottom
-      });
-
-    this.callAxis();
   }
 
   selectIndustry(selectData: string[]) {
@@ -79,14 +62,24 @@ export class BarChartComponent implements AfterViewInit {
     });
   }
 
+  ngAfterViewInit() {
+    this.svg = this.d3.select(this.container.nativeElement)
+      .append('svg')
+      .attrs({
+        width: this.w - this.margin.left - this.margin.right,
+        height: this.h - this.margin.top - this.margin.bottom
+      });
+
+    this.callAxis();
+  }
+
   callAxis() {
     let axisXScale = this.d3.scaleLinear()
       .domain([1991, 2016])
-      .range([this.margin.left + this.padding - 12, this.w - this.margin.left - this.margin.right - 12]);
+      .range([this.margin.left + this.padding - 20, this.w - this.margin.left - this.margin.right - this.r - 15]);
     let axisYScale = this.d3.scaleLinear()
       .domain([0, 300])
       .range([this.h - this.margin.top - this.margin.bottom - this.padding, this.margin.top - 26]);
-
     // X軸
     let axisX = this.svg.append('g')
       .attr('class', 'axis yearAxis')
@@ -107,12 +100,10 @@ export class BarChartComponent implements AfterViewInit {
   }
 
   bind(models: any[], year = null) {
-    let industryData: any[], number: number;
-
-    industryData = models.map(x => x.行業)
+    let industryData = models.map(x => x.行業)
       .filter((d, i, data) => data.indexOf(d) === i)
       .map(industry => models.filter(x => x.行業 === industry));
-    number = _.max(industryData.map(x => x.length)) + 1;
+    let number = _.max(industryData.map(x => x.length)) + 1;
 
     let source = Observable.from(industryData).map(
       x => Observable.interval(30).take(number).map(n => x.slice(0, n))
@@ -123,39 +114,66 @@ export class BarChartComponent implements AfterViewInit {
     }
 
     this.lineSub = source.subscribe(res => {
-      let bar;
+      let circles, lines;
       if (res.length > 0) {
-        bar = this.svg.selectAll('rect').data(res.reduce((acc, x) => acc.concat(x)));
+        circles = this.svg.selectAll('circle').data(res.reduce((acc, x) => acc.concat(x)));
+        lines = this.svg.selectAll('line.data-line').data(res.map(x => x.slice(0, x.length - 1)).reduce((acc, x) => acc.concat(x)));
       } else {
-        bar = this.svg.selectAll('rect').data([]);
+        circles = this.svg.selectAll('circle').data([]);
+        lines = this.svg.selectAll('line.data-line').data([]);
       }
-      bar.exit().remove();
-      bar.enter().append('rect');
+      circles.exit().remove();
+      circles.enter().append('circle');
+      lines.exit().remove();
+      lines.enter().append('line').classed('data-line', true);
       this.render(industryData.length > 0 ? industryData.reduce((acc, x) => acc.concat(x)) : []);
       this.bindEvents();
     });
   }
 
   render(industryData: any[]) {
-    this.svg.selectAll('rect')
+    this.svg.selectAll('circle')
       .attrs({
-        x: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear()),
-        y: (d: any) => this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
-        width: this.barWidth,
-        height: (d: any) => this.yScale(d.平均工時),
+        cx: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear()),
+        cy: (d: any) => this.yScale(d.平均工時),
+        r: this.r,
         fill: (d: any) => this.colors.find(x => x.name === d.行業).color,
         stroke: '#666666',
         'stroke-width': 3
       })
       .style('display', 'none')
       .transition()
+      .duration(60)
+      .style('display', '');
+
+    this.svg.selectAll('line.data-line')
+      .attrs({
+        x1: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear()),
+        x2: (d: any) => this.margin.left + this.xScale(d.時間.getFullYear() + 1),
+        y1: (d: any) => this.yScale(d.平均工時),
+        y2: (d: any) => {
+          let data = industryData.filter(x => x.行業 === d.行業).map(x => x.平均工時);
+          let index = data.indexOf(d.平均工時);
+          if (index < data.length - 1) {
+            return this.yScale(data[index + 1]);
+          } else {
+            return '';
+          }
+        },
+        stroke: (d: any) => this.colors.find(x => x.name === d.行業).color,
+        'stroke-width': 3
+      })
+      .style('display', 'none')
+      .transition()
       .duration(30)
       .style('display', '');
+
+    this.svg.selectAll('circle').raise();
   }
 
   bindEvents() {
-    let lineY;
-    this.svg.selectAll('rect')
+    let lineY, lineX;
+    this.svg.selectAll('circle')
       .on('mouseover', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
 
@@ -167,9 +185,22 @@ export class BarChartComponent implements AfterViewInit {
             .classed('help', true)
             .attrs({
               x1: this.margin.left + 12,
-              y1: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
-              x2: this.w - this.margin.right,
-              y2: this.h - this.margin.top - this.margin.bottom - this.padding - this.yScale(d.平均工時) - 1,
+              y1: this.d3.select(this.d3.event.target).attr('cy'),
+              x2: this.d3.select(this.d3.event.target).attr('cx'),
+              y2: this.d3.select(this.d3.event.target).attr('cy'),
+              stroke: '#333333',
+              'stroke-width': 2,
+              'stroke-dasharray': '5, 5',
+              opacity: 0.8
+            });
+          // X
+          lineX = this.svg.append('line')
+            .classed('help', true)
+            .attrs({
+              x1: this.d3.select(this.d3.event.target).attr('cx'),
+              y1: this.d3.select(this.d3.event.target).attr('cy'),
+              x2: this.d3.select(this.d3.event.target).attr('cx'),
+              y2: this.h - this.margin.top - this.margin.bottom - this.padding,
               stroke: '#333333',
               'stroke-width': 2,
               'stroke-dasharray': '5, 5',
@@ -177,13 +208,15 @@ export class BarChartComponent implements AfterViewInit {
             });
         }
 
+        this.d3.select(this.d3.event.target).raise();
+
         // console.log(d.平均工時);
         let tooltip = this.d3.select(this.container.nativeElement).select('#tooltip');
         tooltip.select('.title').text(d.行業);
         tooltip.select('.year').text(d.時間.getFullYear());
-        tooltip.select('.content_1').text(`平均工時：${Number(d.平均工時).toLocaleString()} 小時`);
-        tooltip.select('.content_2').text(`男：${Number(d.平均工時_男).toLocaleString()} 小時`);
-        tooltip.select('.content_3').text(`女：${Number(d.平均工時_女).toLocaleString()} 小時`);
+        tooltip.select('.content_1').text(`平均工時：${Number(d.平均工時).toLocaleString()} 元`);
+        tooltip.select('.content_2').text(`男：${Number(d.平均工時_男).toLocaleString()} 元`);
+        tooltip.select('.content_3').text(`女：${Number(d.平均工時_女).toLocaleString()} 元`);
         tooltip.style('visibility', 'visible');
       })
       .on('mousemove', (d: any, i, data) => {
@@ -198,7 +231,14 @@ export class BarChartComponent implements AfterViewInit {
         if (lineY) {
           lineY.remove();
         }
+        if (lineX) {
+          lineX.remove();
+        }
       });
+  }
+
+  yearChange(year) {
+    this.bind(this.data, year);
   }
 
   getYearsData(data: any[]): any[] {

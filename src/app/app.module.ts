@@ -11,6 +11,7 @@ import { BarChartComponent } from './bar-chart/bar-chart.component';
 import { PieChartComponent } from './pie-chart/pie-chart.component';
 
 import { NouisliderModule } from 'ng2-nouislider';
+import { LineChartAvgHoursComponent } from './line-chart-avg-hours/line-chart-avg-hours.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { NouisliderModule } from 'ng2-nouislider';
     TreemapComponent,
     LineChartComponent,
     BarChartComponent,
-    PieChartComponent
+    PieChartComponent,
+    LineChartAvgHoursComponent
   ],
   imports: [
     BrowserModule,

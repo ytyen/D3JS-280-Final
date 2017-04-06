@@ -1,0 +1,31 @@
+#container {
+  padding: 35px 35px 15px 35px;
+  margin-bottom: 10px;
+  position: relative;
+  display: inline-block;
+  border: 5px #ebebeb solid;
+}
+
+#tooltip {
+  font-family: 微軟正黑體;
+  background: #ffffff;
+  border: 1px #999999 solid;
+  border-radius: 5px;
+  box-shadow: 2px 2px 8px #888888;
+  position: absolute;
+  visibility: hidden;
+  padding: 8px 15px;
+  z-index: 999;
+  .title {
+    font-weight: 900;
+    font-size: 16px;
+  }
+  .year {
+    text-align: center;
+    font-weight: 900;
+    font-size: 14px;
+  }
+  p:not(.title):not(.year) {
+    text-align: right;
+  }
+}

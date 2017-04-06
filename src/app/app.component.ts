@@ -18,9 +18,11 @@ export class AppComponent implements OnInit {
   @ViewChild('lineChart') lineChart: LineChartComponent;
   @ViewChild('barChart') barChart: BarChartComponent;
   @ViewChild('pieChart') pieChart: PieChartComponent;
+  @ViewChild('lineChartAvgHours') lineChartAvgHours: PieChartComponent;
   d3: D3;
   data: EarningAndProductivityVM[];
   colors: Array<{ name: string, color: string }>;
+  toggleBarOrLine = true;
 
   constructor(private d3Service: D3Service, private http: Http) {
     this.d3 = d3Service.getD3();
@@ -58,6 +60,11 @@ export class AppComponent implements OnInit {
         this.pieChart.max = this.d3.max(this.data, (d) => d.受僱員工人數);
         this.pieChart.min = this.d3.min(this.data, (d) => d.受僱員工人數);
         this.initPieChart();
+        // Init Line Chart Avg Hours
+        this.lineChartAvgHours.colors = this.colors;
+        this.lineChartAvgHours.max = this.d3.max(this.data, (d) => d.平均工時);
+        this.lineChartAvgHours.min = this.d3.min(this.data, (d) => d.平均工時);
+        this.initLineChartAvgHours();
       },
       (err) => {
         alert('資料載入失敗，請重新整理。');
@@ -103,6 +110,20 @@ export class AppComponent implements OnInit {
         受僱員工人數: x.受僱員工人數,
         受僱員工人數_男: x.受僱員工人數_男,
         受僱員工人數_女: x.受僱員工人數_女
+      };
+    });
+  }
+
+  initLineChartAvgHours() {
+    let data = this.data.filter(x => x.行業 === '資訊及通訊傳播業');
+    this.lineChartAvgHours.selectData = ['資訊及通訊傳播業'];
+    this.lineChartAvgHours.data = data.map(x => {
+      return {
+        時間: x.時間,
+        行業: x.行業,
+        平均工時: x.平均工時,
+        平均工時_男: x.平均工時_男,
+        平均工時_女: x.平均工時_女
       };
     });
   }

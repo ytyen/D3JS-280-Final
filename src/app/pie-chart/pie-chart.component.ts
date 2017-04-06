@@ -27,7 +27,7 @@ export class PieChartComponent implements AfterViewInit {
   selectYear: number = 1991;
   d3: D3;
   @ViewChild('container') container: ElementRef;
-  margin = { top: 35, right: 30, bottom: 35, left: 30 };
+  margin = { top: 25, right: 25, bottom: 25, left: 25 };
   padding = 50;
   w = 900;
   h = 450;
@@ -97,16 +97,20 @@ export class PieChartComponent implements AfterViewInit {
 
   render() {
     let arc = this.d3.arc()
-      .outerRadius(this.radius - 10)
+      .outerRadius(this.radius)
       .innerRadius(0);
     let labelArc = this.d3.arc()
-      .outerRadius(this.radius - 40)
-      .innerRadius(this.radius - 40);
+      .outerRadius(this.radius - 50)
+      .innerRadius(this.radius - 50);
 
     this.svg.selectAll('g.arc')
       .attr('transform', `translate(${(this.w - this.margin.left - this.margin.right) / 2}, ${(this.h - this.margin.top - this.margin.bottom) / 2})`)
       .select('path')
       .attr('d', arc)
+      .attrs({
+        stroke: '#ffffff',
+        'stroke-width': 4
+      })
       .style('fill', (d: any) => this.colors.find(x => x.name === d.data.行業).color);
 
     let all = _.sumBy(this.getYearsData(this.data).filter(x => x.時間.getFullYear() === this.selectYear), x => x.受僱員工人數);
@@ -114,13 +118,29 @@ export class PieChartComponent implements AfterViewInit {
       .select('text')
       .attr('transform', (d: any) => `translate(${labelArc.centroid(d)})`)
       .attr('text-anchor', 'middle')
+      .styles({
+        'font-size': 16,
+        'font-weight': 900
+      })
       .text((d: any) => _.round((d.data.受僱員工人數 / all) * 100, 2) + '%');
   }
 
   bindEvents() {
+    let arc = this.d3.arc()
+      .outerRadius(this.radius)
+      .innerRadius(0);
+    let arcOver = this.d3.arc()
+      .outerRadius(this.radius + 10)
+      .innerRadius(0);
+
     this.svg.selectAll('g.arc path')
       .on('mouseover', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
+
+        this.d3.select(this.d3.event.target)
+          .transition()
+          .duration(300)
+          .attr('d', arcOver);
 
         // console.log(d.受僱員工人數);
         let tooltip = this.d3.select(this.container.nativeElement).select('#tooltip');
@@ -139,6 +159,11 @@ export class PieChartComponent implements AfterViewInit {
           });
       })
       .on('mouseout', (d: any, i, data) => {
+        this.d3.select(this.d3.event.target)
+          .transition()
+          .duration(300)
+          .attr('d', arc);
+
         this.d3.select(this.container.nativeElement).select('#tooltip').style('visibility', 'hidden');
       });
   }

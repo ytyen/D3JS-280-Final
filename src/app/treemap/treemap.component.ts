@@ -10,6 +10,7 @@ import * as $ from 'jquery';
 export class TreemapComponent implements AfterViewInit {
   @ViewChild('container') container: ElementRef;
   @Input() single = false;
+  @Input() noSelect = false;
   @Output() select = new EventEmitter();
   d3: D3;
   data = [
@@ -33,6 +34,10 @@ export class TreemapComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
+    if (this.noSelect) {
+      this.selectItem = this.data.map(x => x.name);
+    }
+
     let treemap = this.d3.tree().size([300, 100]);
 
     let treeData = this.d3.stratify()
@@ -105,6 +110,12 @@ export class TreemapComponent implements AfterViewInit {
         ? colors[i]
         : '#fff'
     );
+
+    // 不選擇則不綁click
+    if (this.noSelect) {
+      this.selectItem = this.data.map(x => x.name);
+      return;
+    }
 
     // bind event
     if (this.single) {

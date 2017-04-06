@@ -97,11 +97,11 @@ export class PieChartComponent implements AfterViewInit {
 
   render() {
     let arc = this.d3.arc()
-      .outerRadius(this.radius)
+      .outerRadius(this.radius - 15)
       .innerRadius(0);
     let labelArc = this.d3.arc()
-      .outerRadius(this.radius - 50)
-      .innerRadius(this.radius - 50);
+      .outerRadius(this.radius - 60)
+      .innerRadius(this.radius - 60);
 
     this.svg.selectAll('g.arc')
       .attr('transform', `translate(${(this.w - this.margin.left - this.margin.right) / 2}, ${(this.h - this.margin.top - this.margin.bottom) / 2})`)
@@ -118,29 +118,29 @@ export class PieChartComponent implements AfterViewInit {
       .select('text')
       .attr('transform', (d: any) => `translate(${labelArc.centroid(d)})`)
       .attr('text-anchor', 'middle')
+      .attr('fill', '#333333')
+      .attr('stroke', '#333333')
+      .attr('stroke-width', 1)
       .styles({
-        'font-size': 16,
-        'font-weight': 900
+        'font-size': 16
       })
       .text((d: any) => _.round((d.data.受僱員工人數 / all) * 100, 2) + '%');
   }
 
   bindEvents() {
-    let arc = this.d3.arc()
-      .outerRadius(this.radius)
-      .innerRadius(0);
-    let arcOver = this.d3.arc()
-      .outerRadius(this.radius + 10)
-      .innerRadius(0);
-
     this.svg.selectAll('g.arc path')
       .on('mouseover', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
 
+        // 參考資料：http://stackoverflow.com/a/31706125
+        let a = d.startAngle + (d.endAngle - d.startAngle) / 2 - Math.PI / 2;
+        let x = Math.cos(a) * 18;
+        let y = Math.sin(a) * 18;
+
         this.d3.select(this.d3.event.target)
           .transition()
-          .duration(300)
-          .attr('d', arcOver);
+          .duration(200)
+          .attr('transform', `translate(${x}, ${y})`);
 
         // console.log(d.受僱員工人數);
         let tooltip = this.d3.select(this.container.nativeElement).select('#tooltip');
@@ -161,8 +161,8 @@ export class PieChartComponent implements AfterViewInit {
       .on('mouseout', (d: any, i, data) => {
         this.d3.select(this.d3.event.target)
           .transition()
-          .duration(300)
-          .attr('d', arc);
+          .duration(200)
+          .attr('transform', 'translate(0, 0)');
 
         this.d3.select(this.container.nativeElement).select('#tooltip').style('visibility', 'hidden');
       });

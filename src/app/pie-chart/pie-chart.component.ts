@@ -15,7 +15,7 @@ export class PieChartComponent implements AfterViewInit {
   @Input() colors;
   @Input() max;
   @Input() min;
-  @Input() selectData;
+  @Input() selectData: string[];
   @Input() _data = [];
   get data(): any[] {
     return this._data;
@@ -31,6 +31,7 @@ export class PieChartComponent implements AfterViewInit {
   padding = 50;
   w = 900;
   h = 450;
+  radius = Math.min(this.w - this.margin.left - this.margin.right, this.h - this.margin.top - this.margin.bottom) / 2;
   svg: Selection<BaseType, {}, null, undefined>;
   playSub: Subscription;
   constructor(private d3Service: D3Service) {
@@ -46,19 +47,19 @@ export class PieChartComponent implements AfterViewInit {
       });
   }
 
-  selectIndustry(selectData: string[]) {
-    let data = this.rawData.filter(x => selectData.indexOf(x.行業) > -1);
-    this.selectData = selectData;
-    this.data = data.map(x => {
-      return {
-        時間: x.時間,
-        行業: x.行業,
-        平均工時: x.平均工時,
-        平均工時_男: x.平均工時_男,
-        平均工時_女: x.平均工時_女
-      };
-    });
-  }
+  // selectIndustry(selectData: string[]) {
+  //   let data = this.rawData.filter(x => selectData.indexOf(x.行業) > -1);
+  //   this.selectData = selectData;
+  //   this.data = data.map(x => {
+  //     return {
+  //       時間: x.時間,
+  //       行業: x.行業,
+  //       受僱員工人數: x.受僱員工人數,
+  //       受僱員工人數_男: x.受僱員工人數_男,
+  //       受僱員工人數_女: x.受僱員工人數_女
+  //     };
+  //   });
+  // }
 
   playAndPause() {
     if (this.playSub) {
@@ -79,61 +80,62 @@ export class PieChartComponent implements AfterViewInit {
 
   bind(models: any[], year = null) {
     let data = models.filter(x => x.時間.getFullYear() === year);
-    let pie = this.d3.pie().value((d: any) => d.受僱員工人數);
+    let pie = this.d3.pie().sort((a: any, b: any) => this.selectData.indexOf(a.行業) - this.selectData.indexOf(b.行業)).value((d: any) => d.受僱員工人數);
 
     let selection = this.svg
       .selectAll('g.arc')
       .data(pie(data));
 
-    selection.exit().remove();
-    let g_arc = selection.enter();
-    g_arc.append('g').attr('class', 'arc');
+    let g_arc = selection.enter().append('g').attr('class', 'arc');
     g_arc.append('path');
     g_arc.append('text');
+    selection.exit().remove();
 
     this.render();
-    // this.bindEvents();
+    this.bindEvents();
   }
 
   render() {
-    let outerR = 300;
-    let innerR = 0;
     let arc = this.d3.arc()
-      .outerRadius(outerR)
-      .innerRadius(innerR);
+      .outerRadius(this.radius - 10)
+      .innerRadius(0);
+    let labelArc = this.d3.arc()
+      .outerRadius(this.radius - 40)
+      .innerRadius(this.radius - 40);
 
     this.svg.selectAll('g.arc')
-      .attr('transform', `translate(${this.w / 2}, ${this.h / 2})`)
+      .attr('transform', `translate(${(this.w - this.margin.left - this.margin.right) / 2}, ${(this.h - this.margin.top - this.margin.bottom) / 2})`)
       .select('path')
       .attr('d', arc)
       .style('fill', (d: any) => this.colors.find(x => x.name === d.data.行業).color);
 
+    let all = _.sumBy(this.getYearsData(this.data).filter(x => x.時間.getFullYear() === this.selectYear), x => x.受僱員工人數);
     this.svg.selectAll('g.arc')
       .select('text')
-      .attr('transform', (d: any) => `translate(${arc.centroid(d)})`)
+      .attr('transform', (d: any) => `translate(${labelArc.centroid(d)})`)
       .attr('text-anchor', 'middle')
-      .text((d: any) => d.data.行業);
+      .text((d: any) => _.round((d.data.受僱員工人數 / all) * 100, 2) + '%');
   }
 
   bindEvents() {
-    this.svg.selectAll('circle')
+    this.svg.selectAll('g.arc path')
       .on('mouseover', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
 
         // console.log(d.受僱員工人數);
         let tooltip = this.d3.select(this.container.nativeElement).select('#tooltip');
-        tooltip.select('.title').text(d.行業);
-        tooltip.select('.year').text(d.時間.getFullYear());
-        tooltip.select('.content_1').text(`受僱員工人數：${Number(d.受僱員工人數).toLocaleString()} 人`);
-        tooltip.select('.content_2').text(`男：${Number(d.受僱員工人數_男).toLocaleString()} 人`);
-        tooltip.select('.content_3').text(`女：${Number(d.受僱員工人數_女).toLocaleString()} 人`);
+        tooltip.select('.title').text(d.data.行業);
+        tooltip.select('.year').text(d.data.時間.getFullYear());
+        tooltip.select('.content_1').text(`受僱員工人數：${Number(d.data.受僱員工人數).toLocaleString()} 人`);
+        tooltip.select('.content_2').text(`男：${Number(d.data.受僱員工人數_男).toLocaleString()} 人`);
+        tooltip.select('.content_3').text(`女：${Number(d.data.受僱員工人數_女).toLocaleString()} 人`);
         tooltip.style('visibility', 'visible');
       })
       .on('mousemove', (d: any, i, data) => {
         let point = this.d3.mouse(this.d3.event.target);
         this.d3.select(this.container.nativeElement).select('#tooltip')
           .styles({
-            transform: `translate(${point[0] + 5}px,${point[1] + 5}px)`
+            transform: `translate(${point[0] + 430}px,${point[1] + 200}px)`
           });
       })
       .on('mouseout', (d: any, i, data) => {

@@ -7,6 +7,7 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { D3Service, D3, Selection } from 'd3-ng2-service';
 import { Http } from '@angular/http';
 import 'rxjs';
+import * as _ from 'lodash';
 
 @Component({
   selector: 'app-root',
@@ -93,8 +94,8 @@ export class AppComponent implements OnInit {
   }
 
   initPieChart() {
-    let data = this.data.filter(x => x.行業 === '資訊及通訊傳播業');
-    this.pieChart.selectData = ['資訊及通訊傳播業'];
+    let data = this.data.filter(x => x.行業 !== '資訊及通訊傳播業');
+    this.pieChart.selectData = _.union(this.data.map(x => x.行業));
     this.pieChart.data = data.map(x => {
       return {
         時間: x.時間,

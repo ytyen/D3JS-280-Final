@@ -116,13 +116,13 @@ export class BarChartComponent implements AfterViewInit {
 
     let source = Observable.from(industryData).map(
       x => Observable.interval(30).take(number).map(n => x.slice(0, n))
-    ).mergeAll().bufferTime(30);
+    ).zipAll();
 
     if (this.lineSub) {
       this.lineSub.unsubscribe();
     }
 
-    this.lineSub = source.subscribe(res => {
+    this.lineSub = source.subscribe((res: any) => {
       let bar;
       if (res.length > 0) {
         bar = this.svg.selectAll('rect').data(res.reduce((acc, x) => acc.concat(x)));
